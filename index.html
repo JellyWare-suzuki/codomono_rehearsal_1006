@@ -1,94 +1,11 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>〇×クイズ（テーマ別）</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background-color: #f9f9f9;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-    }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    .question {
-      background-color: #fff;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    button {
-      margin-right: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-    }
-    .result {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
 </head>
 <body>
-  <h1>〇×クイズにチャレンジ！</h1>
-
-  <div class="quiz-container">
-    <div class="question" data-answer="〇">
-      <p>1. お寿司には通常、酢飯が使われる。</p>
-      <button onclick="checkAnswer(this, '〇')">〇</button>
-      <button onclick="checkAnswer(this, '×')">×</button>
-      <p class="result"></p>
-    </div>
-
-    <div class="question" data-answer="×">
-      <p>2. 猫は水に入るのが大好きな動物である。</p>
-      <button onclick="checkAnswer(this, '〇')">〇</button>
-      <button onclick="checkAnswer(this, '×')">×</button>
-      <p class="result"></p>
-    </div>
-
-    <div class="question" data-answer="×">
-      <p>3. 体育の授業では数学を勉強する。</p>
-      <button onclick="checkAnswer(this, '〇')">〇</button>
-      <button onclick="checkAnswer(this, '×')">×</button>
-      <p class="result"></p>
-    </div>
-
-    <div class="question" data-answer="〇">
-      <p>4. シューティングゲームは反射神経が重要になる。</p>
-      <button onclick="checkAnswer(this, '〇')">〇</button>
-      <button onclick="checkAnswer(this, '×')">×</button>
-      <p class="result"></p>
-    </div>
-
-    <div class="question" data-answer="×">
-      <p>5. 人間は翼がなくても自然に空を飛べる。</p>
-      <button onclick="checkAnswer(this, '〇')">〇</button>
-      <button onclick="checkAnswer(this, '×')">×</button>
-      <p class="result"></p>
-    </div>
-  </div>
-
-  <script>
-    function checkAnswer(button, userAnswer) {
-      const questionDiv = button.closest('.question');
-      const correctAnswer = questionDiv.dataset.answer;
-      const resultPara = questionDiv.querySelector('.result');
-
-      if (resultPara.textContent !== "") return; // 一度答えたらロック
-
-      if (userAnswer === correctAnswer) {
-        resultPara.textContent = "正解！";
-        resultPara.style.color = "green";
-      } else {
-        resultPara.textContent = "不正解！";
-        resultPara.style.color = "red";
-      }
-    }
-  </script>
+    この文字が見えていれば準備は完了しています。続きは当日の説明をお待ちください。
 </body>
 </html>
