@@ -1,108 +1,11 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>〇×クイズ - カスタム版</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background-color: #f0f8ff;
-      text-align: center;
-      padding: 30px;
-    }
-    h1 {
-      color: #2c3e50;
-    }
-    .quiz-box {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      margin: 0 auto;
-      max-width: 600px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .question {
-      font-size: 1.2em;
-      margin-bottom: 20px;
-    }
-    .btn {
-      font-size: 1em;
-      padding: 10px 20px;
-      margin: 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .true { background-color: #2ecc71; color: white; }
-    .false { background-color: #e74c3c; color: white; }
-    .result {
-      font-weight: bold;
-      margin-top: 20px;
-    }
-    .restart {
-      display: none;
-      margin-top: 20px;
-      background: #3498db;
-      color: white;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
 </head>
 <body>
-  <h1>〇×クイズ</h1>
-  <div class="quiz-box">
-    <div id="question" class="question">読み込み中...</div>
-    <button class="btn true" onclick="answer(true)">〇</button>
-    <button class="btn false" onclick="answer(false)">×</button>
-    <div id="result" class="result"></div>
-    <button class="btn restart" onclick="restart()">もう一度</button>
-  </div>
-
-  <script>
-    const quiz = [
-      { q: "りんごはバラ科の果物である。", a: true },
-      { q: "猫は完全な草食動物である。", a: false },
-      { q: "体育の授業では、運動だけでなくルールやマナーも学ぶ。", a: true },
-      { q: "RPGとは「リアルパワーゲーム」の略である。", a: false },
-      { q: "瞬間移動は現代の科学で実際に人間が行える。", a: false }
-    ];
-
-    let current = 0;
-    let score = 0;
-
-    function showQuestion() {
-      if (current < quiz.length) {
-        document.getElementById("question").textContent = quiz[current].q;
-        document.getElementById("result").textContent = "";
-      } else {
-        document.getElementById("question").textContent = "クイズ終了！あなたのスコアは " + score + " / " + quiz.length + " です。";
-        document.querySelector(".true").style.display = "none";
-        document.querySelector(".false").style.display = "none";
-        document.querySelector(".restart").style.display = "inline-block";
-      }
-    }
-
-    function answer(userAnswer) {
-      const correct = quiz[current].a;
-      if (userAnswer === correct) {
-        document.getElementById("result").textContent = "正解！";
-        score++;
-      } else {
-        document.getElementById("result").textContent = "不正解…";
-      }
-      current++;
-      setTimeout(showQuestion, 1000);
-    }
-
-    function restart() {
-      current = 0;
-      score = 0;
-      document.querySelector(".true").style.display = "inline-block";
-      document.querySelector(".false").style.display = "inline-block";
-      document.querySelector(".restart").style.display = "none";
-      showQuestion();
-    }
-
-    showQuestion();
-  </script>
+    この文字が見えていれば準備は完了しています。続きは当日の説明をお待ちください。
 </body>
 </html>
