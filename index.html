@@ -1,11 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>〇×クイズ - カスタム版</title>
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background-color: #f0f8ff;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    #quiz-box {
+      background: #ffffff;
+      padding: 20px;
+      margin: auto;
+      max-width: 500px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .question {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+    }
+    .btn {
+      font-size: 1.1em;
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #fff;
+    }
+    .true { background-color: #2ecc71; }
+    .false { background-color: #e74c3c; }
+    .btn:hover {
+      opacity: 0.9;
+    }
+    #result {
+      font-weight: bold;
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+  </style>
 </head>
 <body>
-    この文字が見えていれば準備は完了しています。続きは当日の説明をお待ちください。
+
+  <h1>〇×クイズ - 梨とライオンと…</h1>
+  <div id="quiz-box">
+    <div class="question" id="question">読み込み中...</div>
+    <button class="btn true" onclick="answer(true)">〇</button>
+    <button class="btn false" onclick="answer(false)">×</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const quiz = [
+      {
+        question: "梨はバラ科の果物である。",
+        correct: true
+      },
+      {
+        question: "ライオンは日本の野生動物である。",
+        correct: false
+      },
+      {
+        question: "英語で「apple」は『梨』という意味である。",
+        correct: false
+      },
+      {
+        question: "柔道や空手などは格闘技に分類される。",
+        correct: true
+      },
+      {
+        question: "瞬間移動は現在の科学で実現されている。",
+        correct: false
+      }
+    ];
+
+    let current = 0;
+    let score = 0;
+
+    const questionEl = document.getElementById("question");
+    const resultEl = document.getElementById("result");
+
+    function showQuestion() {
+      if (current < quiz.length) {
+        questionEl.textContent = quiz[current].question;
+        resultEl.textContent = "";
+      } else {
+        questionEl.textContent = "クイズ終了！";
+        resultEl.innerHTML = `あなたの正解数は <strong>${score} / ${quiz.length}</strong> です。<br>もう一度やりたい場合はページをリロードしてください。`;
+        document.querySelectorAll(".btn").forEach(btn => btn.disabled = true);
+      }
+    }
+
+    function answer(userAnswer) {
+      const correct = quiz[current].correct;
+      if (userAnswer === correct) {
+        resultEl.textContent = "正解！";
+        resultEl.style.color = "green";
+        score++;
+      } else {
+        resultEl.textContent = "不正解！";
+        resultEl.style.color = "red";
+      }
+      current++;
+      setTimeout(showQuestion, 1000);
+    }
+
+    showQuestion();
+  </script>
 </body>
 </html>
