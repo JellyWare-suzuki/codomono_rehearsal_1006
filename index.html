@@ -2,116 +2,193 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>ネコの覇気バトル</title>
+  <title>空飛ぶ犬のシューティング</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Arial', sans-serif;
-      text-align: center;
-      background-color: #f0f0f0;
-      transition: background-color 0.5s;
+      overflow: hidden;
+      font-family: sans-serif;
+      background: linear-gradient(to top, #87ceeb, #ffffff);
     }
-    .game-container {
-      padding: 40px;
-    }
-    h1 {
-      margin-bottom: 10px;
-    }
-    #status {
-      font-size: 1.2em;
-      margin-bottom: 20px;
-    }
-    .cat-img {
-      width: 150px;
-      transition: transform 0.2s;
-    }
-    .btn {
-      padding: 15px 30px;
-      margin: 10px;
-      font-size: 1em;
+
+    #startBtn {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px 40px;
+      font-size: 24px;
       border: none;
-      border-radius: 5px;
+      border-radius: 10px;
+      background: linear-gradient(45deg, #ff66cc, #66ccff);
+      color: white;
       cursor: pointer;
+      animation: glow 1.5s infinite;
+      z-index: 10;
     }
-    .attack-btn {
-      background-color: #e74c3c;
-      color: white;
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 10px #fff; }
+      50% { box-shadow: 0 0 20px #ff0, 0 0 30px #f0f; }
+      100% { box-shadow: 0 0 10px #fff; }
     }
-    .haki-btn {
-      background-color: #2c3e50;
-      color: white;
-    }
-    .enemy {
-      font-size: 1.2em;
-      margin-top: 20px;
+
+    canvas {
+      display: block;
     }
   </style>
 </head>
 <body>
-
-  <div class="game-container">
-    <h1>ネコの覇気バトル in 体育館</h1>
-    <p id="status">敵のHP: <span id="enemyHp">100</span></p>
-    <img src="https://placekitten.com/200/200" alt="Cat Fighter" class="cat-img" id="catImage" />
-    <div>
-      <button class="btn attack-btn" onclick="normalAttack()">パンチ</button>
-      <button class="btn haki-btn" onclick="hakiAttack()">覇気技</button>
-    </div>
-    <div class="enemy" id="enemyStatus">敵は構えている…</div>
-  </div>
+  <button id="startBtn">ゲームスタート！</button>
+  <canvas id="gameCanvas"></canvas>
+  <audio id="bgm" loop>
+    <source src="https://www.bensound.com/bensound-music/bensound-sunny.mp3" type="audio/mp3">
+    ※音楽ファイルはブラウザで再生できない場合があります。
+  </audio>
 
   <script>
-    let enemyHp = 100;
-    const enemyHpEl = document.getElementById('enemyHp');
-    const enemyStatusEl = document.getElementById('enemyStatus');
-    const catImg = document.getElementById('catImage');
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const startBtn = document.getElementById("startBtn");
+    const bgm = document.getElementById("bgm");
 
-    const hakiColors = ['#a29bfe', '#81ecec', '#fab1a0', '#fd79a8', '#ffeaa7'];
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    function normalAttack() {
-      let damage = Math.floor(Math.random() * 10) + 5;
-      enemyHp -= damage;
-      enemyStatusEl.textContent = `ネコがパンチ！ 敵に ${damage} ダメージ！`;
-      shakeCat();
-      updateGame();
-    }
+    let dog, bullets, enemies, keys = {};
+    let gameStarted = false;
 
-    function hakiAttack() {
-      let damage = Math.floor(Math.random() * 20) + 15;
-      enemyHp -= damage;
-      let color = hakiColors[Math.floor(Math.random() * hakiColors.length)];
-      document.body.style.backgroundColor = color;
-      enemyStatusEl.textContent = `ネコが覇気を解放！ ${damage} ダメージ！`;
-      pulseCat();
-      updateGame();
-    }
+    // プレイヤー犬の画像
+    const dogImg = new Image();
+    dogImg.src = "https://cdn-icons-png.flaticon.com/512/616/616408.png"; // 犬アイコン
 
-    function updateGame() {
-      if (enemyHp <= 0) {
-        enemyHp = 0;
-        enemyHpEl.textContent = enemyHp;
-        enemyStatusEl.textContent = "敵を倒した！ ネコの勝利！";
-        disableButtons();
-      } else {
-        enemyHpEl.textContent = enemyHp;
+    // 敵の画像
+    const enemyImg = new Image();
+    enemyImg.src = "https://cdn-icons-png.flaticon.com/512/616/616408.png"; // 敵も犬（笑）
+
+    class Dog {
+      constructor() {
+        this.x = 100;
+        this.y = canvas.height / 2;
+        this.width = 60;
+        this.height = 60;
+        this.speed = 5;
+      }
+
+      draw() {
+        ctx.drawImage(dogImg, this.x, this.y, this.width, this.height);
+      }
+
+      update() {
+        if (keys["ArrowUp"] && this.y > 0) this.y -= this.speed;
+        if (keys["ArrowDown"] && this.y < canvas.height - this.height) this.y += this.speed;
       }
     }
 
-    function shakeCat() {
-      catImg.style.transform = "translateX(-10px)";
-      setTimeout(() => catImg.style.transform = "translateX(10px)", 100);
-      setTimeout(() => catImg.style.transform = "translateX(0)", 200);
+    class Bullet {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 10;
+        this.height = 5;
+        this.speed = 10;
+      }
+
+      draw() {
+        ctx.fillStyle = "yellow";
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+      }
+
+      update() {
+        this.x += this.speed;
+      }
     }
 
-    function pulseCat() {
-      catImg.style.transform = "scale(1.2)";
-      setTimeout(() => catImg.style.transform = "scale(1)", 200);
+    class Enemy {
+      constructor() {
+        this.x = canvas.width;
+        this.y = Math.random() * (canvas.height - 50);
+        this.width = 50;
+        this.height = 50;
+        this.speed = 3 + Math.random() * 2;
+      }
+
+      draw() {
+        ctx.drawImage(enemyImg, this.x, this.y, this.width, this.height);
+      }
+
+      update() {
+        this.x -= this.speed;
+      }
     }
 
-    function disableButtons() {
-      document.querySelectorAll("button").forEach(btn => btn.disabled = true);
+    function startGame() {
+      startBtn.style.display = "none";
+      gameStarted = true;
+      dog = new Dog();
+      bullets = [];
+      enemies = [];
+
+      bgm.play().catch(e => console.log("音楽は自動再生できません。"));
+
+      setInterval(() => {
+        if (gameStarted) {
+          enemies.push(new Enemy());
+        }
+      }, 1500);
+
+      gameLoop();
     }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      dog.update();
+      dog.draw();
+
+      bullets.forEach((bullet, bIndex) => {
+        bullet.update();
+        bullet.draw();
+
+        // 画面外削除
+        if (bullet.x > canvas.width) bullets.splice(bIndex, 1);
+      });
+
+      enemies.forEach((enemy, eIndex) => {
+        enemy.update();
+        enemy.draw();
+
+        // 衝突判定
+        bullets.forEach((bullet, bIndex) => {
+          if (
+            bullet.x < enemy.x + enemy.width &&
+            bullet.x + bullet.width > enemy.x &&
+            bullet.y < enemy.y + enemy.height &&
+            bullet.y + bullet.height > enemy.y
+          ) {
+            enemies.splice(eIndex, 1);
+            bullets.splice(bIndex, 1);
+          }
+        });
+      });
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 操作
+    window.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+      if (e.key === " ") {
+        bullets.push(new Bullet(dog.x + dog.width, dog.y + dog.height / 2));
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    // スタートボタン押下
+    startBtn.addEventListener("click", startGame);
   </script>
-
 </body>
 </html>
