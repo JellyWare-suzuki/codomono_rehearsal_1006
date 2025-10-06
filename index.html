@@ -1,194 +1,169 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>空飛ぶ犬のシューティング</title>
+  <meta charset="UTF-8">
+  <title>空飛ぶ犬の理科RPG</title>
   <style>
     body {
       margin: 0;
       overflow: hidden;
+      background: linear-gradient(to top, #87cefa, #ffffff);
       font-family: sans-serif;
-      background: linear-gradient(to top, #87ceeb, #ffffff);
     }
 
-    #startBtn {
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #dog {
       position: absolute;
-      top: 40%;
+      bottom: 20px;
+      left: 50px;
+      width: 80px;
+      transition: transform 0.3s;
+    }
+
+    .enemy {
+      position: absolute;
+      width: 60px;
+      bottom: 20px;
+    }
+
+    #boss {
+      position: absolute;
+      right: 100px;
+      bottom: 20px;
+      width: 80px;
+      display: none;
+    }
+
+    #message {
+      position: absolute;
+      top: 20px;
       left: 50%;
-      transform: translate(-50%, -50%);
-      padding: 20px 40px;
-      font-size: 24px;
-      border: none;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.8);
+      padding: 10px 20px;
       border-radius: 10px;
-      background: linear-gradient(45deg, #ff66cc, #66ccff);
-      color: white;
-      cursor: pointer;
-      animation: glow 1.5s infinite;
+      font-size: 18px;
       z-index: 10;
     }
 
-    @keyframes glow {
-      0% { box-shadow: 0 0 10px #fff; }
-      50% { box-shadow: 0 0 20px #ff0, 0 0 30px #f0f; }
-      100% { box-shadow: 0 0 10px #fff; }
+    .firework {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: red;
+      animation: explode 1s ease-out forwards;
     }
 
-    canvas {
-      display: block;
+    @keyframes explode {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(5);
+        opacity: 0;
+      }
+    }
+
+    .flying {
+      animation: flyingAnim 1s infinite alternate ease-in-out;
+    }
+
+    @keyframes flyingAnim {
+      from { transform: translateY(0); }
+      to { transform: translateY(-20px); }
     }
   </style>
 </head>
 <body>
-  <button id="startBtn">ゲームスタート！</button>
-  <canvas id="gameCanvas"></canvas>
-  <audio id="bgm" loop>
-    <source src="https://www.bensound.com/bensound-music/bensound-sunny.mp3" type="audio/mp3">
-    ※音楽ファイルはブラウザで再生できない場合があります。
-  </audio>
+  <div id="gameArea">
+    <img id="dog" src="https://em-content.zobj.net/source/joypixels/354/dog-face_1f436.png" alt="犬">
+    <img id="boss" src="https://em-content.zobj.net/source/joypixels/354/microscope_1f52c.png" alt="理科ボス">
+    <div id="message">空飛ぶ犬🐶で理科の世界を冒険しよう！</div>
+  </div>
 
   <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    const startBtn = document.getElementById("startBtn");
-    const bgm = document.getElementById("bgm");
+    const dog = document.getElementById("dog");
+    const boss = document.getElementById("boss");
+    const message = document.getElementById("message");
+    const gameArea = document.getElementById("gameArea");
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    let x = 50;
+    let flying = true;
+    dog.classList.add("flying");
 
-    let dog, bullets, enemies, keys = {};
-    let gameStarted = false;
+    // ステージ上の理科モンスター
+    const enemies = [
+      { src: "https://em-content.zobj.net/source/joypixels/354/dna_1f9ec.png", left: 300 },
+      { src: "https://em-content.zobj.net/source/joypixels/354/test-tube_1f9ea.png", left: 600 }
+    ];
 
-    // プレイヤー犬の画像
-    const dogImg = new Image();
-    dogImg.src = "https://cdn-icons-png.flaticon.com/512/616/616408.png"; // 犬アイコン
+    enemies.forEach(e => {
+      const el = document.createElement("img");
+      el.src = e.src;
+      el.className = "enemy";
+      el.style.left = e.left + "px";
+      gameArea.appendChild(el);
+    });
 
-    // 敵の画像
-    const enemyImg = new Image();
-    enemyImg.src = "https://cdn-icons-png.flaticon.com/512/616/616408.png"; // 敵も犬（笑）
+    function moveDog() {
+      if (x < window.innerWidth - 150) {
+        x += 5;
+        dog.style.left = x + "px";
 
-    class Dog {
-      constructor() {
-        this.x = 100;
-        this.y = canvas.height / 2;
-        this.width = 60;
-        this.height = 60;
-        this.speed = 5;
-      }
-
-      draw() {
-        ctx.drawImage(dogImg, this.x, this.y, this.width, this.height);
-      }
-
-      update() {
-        if (keys["ArrowUp"] && this.y > 0) this.y -= this.speed;
-        if (keys["ArrowDown"] && this.y < canvas.height - this.height) this.y += this.speed;
-      }
-    }
-
-    class Bullet {
-      constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.width = 10;
-        this.height = 5;
-        this.speed = 10;
-      }
-
-      draw() {
-        ctx.fillStyle = "yellow";
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-      }
-
-      update() {
-        this.x += this.speed;
-      }
-    }
-
-    class Enemy {
-      constructor() {
-        this.x = canvas.width;
-        this.y = Math.random() * (canvas.height - 50);
-        this.width = 50;
-        this.height = 50;
-        this.speed = 3 + Math.random() * 2;
-      }
-
-      draw() {
-        ctx.drawImage(enemyImg, this.x, this.y, this.width, this.height);
-      }
-
-      update() {
-        this.x -= this.speed;
-      }
-    }
-
-    function startGame() {
-      startBtn.style.display = "none";
-      gameStarted = true;
-      dog = new Dog();
-      bullets = [];
-      enemies = [];
-
-      bgm.play().catch(e => console.log("音楽は自動再生できません。"));
-
-      setInterval(() => {
-        if (gameStarted) {
-          enemies.push(new Enemy());
+        // 敵との衝突処理
+        const hit = enemies.find(e => Math.abs(x - e.left) < 30);
+        if (hit) {
+          message.textContent = "敵を倒した！💥";
+          enemies.splice(enemies.indexOf(hit), 1);
         }
-      }, 1500);
 
-      gameLoop();
-    }
+        // ボス出現
+        if (x > 700 && boss.style.display === "none") {
+          boss.style.display = "block";
+          message.textContent = "理科ボス登場！🔬";
+        }
 
-    function gameLoop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // ボス撃破＆花火
+        if (x > 900 && boss.style.display === "block") {
+          boss.style.display = "none";
+          message.textContent = "ボス撃破！🎆 花火だ！";
 
-      dog.update();
-      dog.draw();
+          launchFireworks();
+        }
 
-      bullets.forEach((bullet, bIndex) => {
-        bullet.update();
-        bullet.draw();
-
-        // 画面外削除
-        if (bullet.x > canvas.width) bullets.splice(bIndex, 1);
-      });
-
-      enemies.forEach((enemy, eIndex) => {
-        enemy.update();
-        enemy.draw();
-
-        // 衝突判定
-        bullets.forEach((bullet, bIndex) => {
-          if (
-            bullet.x < enemy.x + enemy.width &&
-            bullet.x + bullet.width > enemy.x &&
-            bullet.y < enemy.y + enemy.height &&
-            bullet.y + bullet.height > enemy.y
-          ) {
-            enemies.splice(eIndex, 1);
-            bullets.splice(bIndex, 1);
-          }
-        });
-      });
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    // 操作
-    window.addEventListener("keydown", (e) => {
-      keys[e.key] = true;
-      if (e.key === " ") {
-        bullets.push(new Bullet(dog.x + dog.width, dog.y + dog.height / 2));
+        requestAnimationFrame(moveDog);
+      } else {
+        message.textContent = "冒険クリア！✨";
       }
-    });
+    }
 
-    window.addEventListener("keyup", (e) => {
-      keys[e.key] = false;
-    });
+    function launchFireworks() {
+      for (let i = 0; i < 20; i++) {
+        const fw = document.createElement("div");
+        fw.className = "firework";
+        fw.style.left = Math.random() * window.innerWidth + "px";
+        fw.style.top = Math.random() * (window.innerHeight / 2) + "px";
+        fw.style.background = `hsl(${Math.random()*360}, 100%, 60%)`;
+        gameArea.appendChild(fw);
 
-    // スタートボタン押下
-    startBtn.addEventListener("click", startGame);
+        setTimeout(() => fw.remove(), 1000);
+      }
+    }
+
+    // スタート
+    message.textContent = "クリックで冒険開始！🐶";
+    gameArea.addEventListener("click", () => {
+      message.textContent = "出発進行！✈️";
+      moveDog();
+    });
   </script>
 </body>
 </html>
